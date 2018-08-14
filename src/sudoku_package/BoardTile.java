@@ -38,9 +38,12 @@ class BoardTile {
 	public boolean equals(Object o) {
 		if (o instanceof BoardTile) {
 			BoardTile other = (BoardTile)o;
-			if (other.getVal() == getVal())
-				return true;
+			return other.getVal() == getVal();
 		}
 		return false;
 	}
+
+	public boolean equals_int(int i) {
+	    return getVal() == i;
+    }
 }

@@ -56,9 +56,10 @@ public class SudokuBoard {
 	 * (assumes a legal board).
 	 */
 	public void solve() {
-		boolean moveMade = makeNextMove();
-		while (moveMade)
+		boolean moveMade;
+		do
 			moveMade = makeNextMove();
+		while (moveMade);
 	}
 	
 	/**
@@ -221,9 +222,9 @@ public class SudokuBoard {
 	 */
 	private void updateLegalNums(int x, int y) {
 		board[x][y].setLegalNums(Arrays.stream(new Integer[] {1, 2, 3, 4, 5, 6, 7, 8, 9})
-				.filter(r -> !getRow(x).stream().map(BoardTile::getVal).anyMatch(e -> e == r))
-				.filter(c -> !getCol(y).stream().map(BoardTile::getVal).anyMatch(e -> e == c))
-				.filter(s -> !getBlock(x, y).stream().map(BoardTile::getVal).anyMatch(e -> e == s))
+				.filter(r -> getRow(x).stream().noneMatch(e -> e.equals_int(r)))
+				.filter(c -> getCol(y).stream().noneMatch(e -> e.equals_int(c)))
+				.filter(s -> getBlock(x, y).stream().noneMatch(e -> e.equals_int(s)))
 				.collect(Collectors.toList()));
 	}
 	
