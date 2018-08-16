@@ -7,20 +7,27 @@ class BoardTile {
 
 	private int val;
 	private List<Integer> legalNums;
+
+	private int row;
+	private int col;
+	private int blk;
 	
-	public BoardTile() {
-		this(0);
-	}
-	
-	public BoardTile(int val) {
+	public BoardTile(int val, int x, int y) {
 		setVal(val);
 		legalNums = new ArrayList<Integer>();
+		row = y;
+		col = x;
+		blk = x/3 + (y/3)*3;
 	}
 	
 	public int getVal() {
 		return val;
 	}
-	
+
+	public int[] getPos() {
+		return new int[] {row, col, blk};
+	}
+
 	public List<Integer> getLegalNums() {
 		return legalNums;
 	}

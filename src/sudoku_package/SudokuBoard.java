@@ -16,7 +16,7 @@ public class SudokuBoard {
 		board = new BoardTile[9][9];
 		for (int i = 0; i < 9; i++) {
 			for (int j = 0; j < 9; j++) {
-				board[i][j] = new BoardTile();
+				board[i][j] = new BoardTile(0, i, j);
 			}
 		}
 	}
@@ -154,9 +154,9 @@ public class SudokuBoard {
 	/**
 	 * Determines the next move by checking if any blank
 	 * tiles have only two legal options, then guesses one
-	 * and determines if the board is solveable.
+	 * and determines if the board is solvable.
 	 * 
-	 * If the board is still solveable, that move is made,
+	 * If the board is still solvable, that move is made,
 	 * otherwise the other option is used.
 	 * 
 	 * @return true if a move was successfully made, otherwise false.
