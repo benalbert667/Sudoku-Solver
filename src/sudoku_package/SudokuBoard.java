@@ -35,7 +35,7 @@ public class SudokuBoard {
 			}
 		}
 	}
-	
+
 	/**
 	 * Copies a given board unless that
 	 * board's dimensions are not 9x9.
@@ -64,6 +64,8 @@ public class SudokuBoard {
 	
 	/**
 	 * Makes a single correct move.
+	 * Moves are made by executing strategies in order of logic and efficiency
+	 * until a move is made, or not if there are no possible moves.
 	 * 
 	 * @return true if a move was successfully made, otherwise false.
 	 */
@@ -75,7 +77,7 @@ public class SudokuBoard {
 		if (!moveMade) moveMade = solveByElimination();
 		
 		if (!moveMade) moveMade = solveByGuessing();
-		
+
 		return moveMade;
 	}
 	
@@ -109,44 +111,28 @@ public class SudokuBoard {
 	private boolean solveByElimination() {
 		for (int i = 0; i < 9; i++) {
 			for (int j = 0; j < 9; j++) {
-				List<Integer> legal = board[i][j].getLegalNums();
 				if (board[i][j].getVal() == 0) {
-					searchRow:
-						for (int k : legal) {
-							for (int l = 0; l < 9; l++) {
-								if (l!=i && board[l][j].getVal() == 0 &&
-									board[l][j].getLegalNums().contains(k))
-									continue searchRow;
-							}
-							makeMove(i, j, k);
-							return true;
-						}
-					
-					searchCol:
-						for (int k : legal) {
-							for (int l = 0; l < 9; l++) {
-								if (l!=j && board[i][l].getVal() == 0 &&
-									board[i][l].getLegalNums().contains(k))
-									continue searchCol;
-							}
-							makeMove(i, j, k);
-							return true;
-						}
-						
-					searchBlock:
-						for (int k : legal) {
-							for (int l = 0; l < 9; l++) {
-								int x = (i/3)*3 + (l%3);
-								int y = (j/3)*3 + (l/3);
-								if (!(x == i && y == j) && board[x][y].getVal() == 0 &&
-									board[x][y].getLegalNums().contains(k))
-									continue searchBlock;
-							}
+					List<Integer> legal = board[i][j].getLegalNums();
+					List<BoardTile> row = getRow(i, j, false);
+					List<BoardTile> col = getCol(i, j, false);
+					List<BoardTile> blk = getBlock(i, j, false);
+					for (int k : legal) {
+						boolean a = row.stream()
+								.map(BoardTile::getLegalNums)
+								.noneMatch(lst -> lst.contains(k));
+						boolean b = col.stream()
+								.map(BoardTile::getLegalNums)
+								.noneMatch(lst -> lst.contains(k));
+						boolean c = blk.stream()
+								.map(BoardTile::getLegalNums)
+								.noneMatch(lst -> lst.contains(k));
+						if(a || b || c) {
 							makeMove(i, j, k);
 							return true;
 						}
 					}
 				}
+			}
 		}
 		return false;
 	}
@@ -194,7 +180,7 @@ public class SudokuBoard {
 	 * @param posY y position on board (int 0-8 inclusive)
 	 * @param val value to be placed in tile (int 0-9 inclusive) (0 value signifies a blank tile)
 	 */
-	public void makeMove(int posX, int posY, int val) {
+	private void makeMove(int posX, int posY, int val) {
 		if (posX < 0 || posX > 8 ||
 			posY < 0 || posY > 8)
 			return;
@@ -216,42 +202,50 @@ public class SudokuBoard {
 	}
 	
 	/**
-	 * Determines the legal numbers for a specific tile
+	 * Determines the legal numbers for a specific tile and updates the tile's legalNums list
 	 * @param x x-coord of tile
 	 * @param y y-coord of tile
 	 */
 	private void updateLegalNums(int x, int y) {
 		board[x][y].setLegalNums(Arrays.stream(new Integer[] {1, 2, 3, 4, 5, 6, 7, 8, 9})
-				.filter(r -> getRow(x).stream().noneMatch(e -> e.equals_int(r)))
-				.filter(c -> getCol(y).stream().noneMatch(e -> e.equals_int(c)))
-				.filter(s -> getBlock(x, y).stream().noneMatch(e -> e.equals_int(s)))
+				.filter(r -> getRow(x, y, true).stream().noneMatch(e -> e.equals_int(r)))
+				.filter(c -> getCol(x, y, true).stream().noneMatch(e -> e.equals_int(c)))
+				.filter(s -> getBlock(x, y, true).stream().noneMatch(e -> e.equals_int(s)))
 				.collect(Collectors.toList()));
 	}
 	
 	/**
 	 * Determines the numbers in a certain row
-	 * 
-	 * @param posX number row (int 0-8 inclusive)
-	 * @return A List<Integer> of numbers in the row
+	 *
+	 * @param posX tile's x position on board (int 0-8 inclusive)
+	 * @param posY tile's y position on board (int 0-8 inclusive)
+	 * @param include_origin option to exclude original tile from returned list
+	 * @return A List<BoardTile> of tiles in the tile's row
 	 */
-	private List<BoardTile> getRow(int posX) {
+	private List<BoardTile> getRow(int posX, int posY, boolean include_origin) {
 		List<BoardTile> toReturn = new ArrayList<>();
-		for (BoardTile i : board[posX]) {
-			toReturn.add(i);
+		for (int i = 0; i < 9; i++) {
+			if(i != posY || include_origin) {
+				toReturn.add(board[posX][i]);
+			}
 		}
 		return toReturn;
 	}
 	
 	/**
 	 * Determines the numbers in a certain column
-	 * 
-	 * @param posY number column (int 0-8 inclusive)
-	 * @return A List<Integer> of numbers in the column
+	 *
+	 * @param posX tile's x position on board (int 0-8 inclusive)
+	 * @param posY tile's y position on board (int 0-8 inclusive)
+	 * @param include_origin option to exclude original tile from returned list
+	 * @return A List<BoardTile> of tiles in the tile's column
 	 */
-	private List<BoardTile> getCol(int posY) {
+	private List<BoardTile> getCol(int posX, int posY, boolean include_origin) {
 		List<BoardTile> toReturn = new ArrayList<>();
 		for (int i = 0; i < 9; i++) {
-			toReturn.add(board[i][posY]);
+			if(i != posX || include_origin) {
+				toReturn.add(board[i][posY]);
+			}
 		}
 		return toReturn;
 	}
@@ -261,16 +255,19 @@ public class SudokuBoard {
 	 * 
 	 * @param posX tile's x position on board (int 0-8 inclusive)
 	 * @param posY tile's y position on board (int 0-8 inclusive)
-	 * @return A List<Integer> of numbers in the tile's block
+	 * @param include_origin option to exclude original tile from returned list
+	 * @return A List<BoardTile> of tiles in the tile's block
 	 */
-	private List<BoardTile> getBlock(int posX, int posY) {
+	private List<BoardTile> getBlock(int posX, int posY, boolean include_origin) {
 		List<BoardTile> toReturn = new ArrayList<>();
 		int a = (posX/3)*3;
 		int b = (posY/3)*3;
 		
 		for (int i = a; i < a + 3; i++) {
 			for (int j = b; j < b + 3; j++) {
-				toReturn.add(board[i][j]);
+				if(!(i == posX && j == posY) || include_origin) {
+					toReturn.add(board[i][j]);
+				}
 			}
 		}
 		return toReturn;
@@ -281,7 +278,7 @@ public class SudokuBoard {
 	 * 
 	 * @return true if the board is full, otherwise false
 	 */
-	protected boolean fullBoard() {
+	private boolean fullBoard() {
 		for (int i = 0; i < 9; i++) {
 			for (int j = 0; j < 9; j++) {
 				if (board[i][j].getVal() == 0)
@@ -305,13 +302,4 @@ public class SudokuBoard {
 			System.out.println("|");
 		}
 	}
-	
-	/**
-	 * Returns the value at a specific tile
-	 * 
-	 * @param posX x position on board (int 0-8 inclusive)
-	 * @param posY y position on board (int 0-8 inclusive)
-	 * @return value at tile (posX, posY)
-	 */
-	public int getVal(int posX, int posY) { return board[posX][posY].getVal(); }
 }
