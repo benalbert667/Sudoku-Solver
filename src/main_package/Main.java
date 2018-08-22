@@ -19,11 +19,11 @@ public class Main {
 			{ 9, 0, 8, 0, 0, 0, 7, 0, 3 }
 		};
 		SudokuBoard sb = new SudokuBoard(start);
-		
+
 		sb.printBoard();
-		
+
 		sb.solve();
-		
+
 		System.out.println("\nSolved:");
 		sb.printBoard();
 	}

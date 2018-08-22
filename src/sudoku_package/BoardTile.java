@@ -8,32 +8,34 @@ class BoardTile {
 	private int val;
 	private List<Integer> legalNums;
 
-	private int row;
-	private int col;
-	private int blk;
+	private int x;
+	private int y;
 	
 	public BoardTile(int val, int x, int y) {
 		setVal(val);
 		legalNums = new ArrayList<Integer>();
-		row = y;
-		col = x;
-		blk = x/3 + (y/3)*3;
+		this.x = x;
+		this.y = y;
 	}
-	
+
+	public String getId() {
+		return "" + x + y;
+	}
+
+	public int getBlock() {
+		return x/3 + (y/3)*3;
+	}
+
 	public int getVal() {
 		return val;
 	}
 
-	public int[] getPos() {
-		return new int[] {row, col, blk};
-	}
-
 	public List<Integer> getLegalNums() {
-		return legalNums;
+		return new ArrayList<>(legalNums);
 	}
 	
 	public void setLegalNums(List<Integer> legalNums) {
-		this.legalNums = legalNums;
+		this.legalNums = new ArrayList<>(legalNums);
 	}
 	
 	public void setVal(int val) {
@@ -41,16 +43,22 @@ class BoardTile {
 			val = 0;
 		this.val = val;
 	}
-	
+
+	public boolean equals_int(int i) {
+		return getVal() == i;
+	}
+
 	public boolean equals(Object o) {
 		if (o instanceof BoardTile) {
 			BoardTile other = (BoardTile)o;
-			return other.getVal() == getVal();
+			return other.getId().equals(getId());
 		}
 		return false;
 	}
 
-	public boolean equals_int(int i) {
-	    return getVal() == i;
-    }
+	public BoardTile clone() {
+		BoardTile nt = new BoardTile(val, x, y);
+		nt.setLegalNums(legalNums);
+		return nt;
+	}
 }
